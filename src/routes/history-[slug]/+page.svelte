@@ -4,12 +4,11 @@
 
     let questions = [];
     let answers = [];
-    let history = [];
-    let currentIndex = 0;
-    let intervalId;
-    let ms = 1000;
-    let question = "";
     let datum = [];
+    let question = "";
+    let history = [];
+    let q = null;
+    let currentIndex = 0;
 
     export let data;
 
@@ -25,26 +24,7 @@
         return json.reverse();
     }
 
-    function startInterval() {
-        intervalId = setInterval(() => {
-            currentIndex = (currentIndex + 1) % history.length;
-        }, ms);
-    }
-
-    function stopInterval() {
-        if (intervalId) {
-            clearInterval(intervalId);
-        }
-    }
-
-    $: {
-        if (history.length > 0) {
-            stopInterval();
-            startInterval();
-        }
-    }
-
-    onMount(async () => {
+    async function loadData() {
         questions = await fetchQuestions();
         answers = await fetchData();
 
@@ -67,27 +47,35 @@
                 return acc;
             }, []);
 
-        history = [];
-        for (let index = 1; index <= datum[0].data.length; index++) {
-            history.push({
-                question: datum[0].question,
+        history = [
+            {
+                question: datum[0]?.question || "",
                 ascii: question.ascii,
-                data: datum[0].data.reverse().slice(0, index),
-            });
-        }
-    });
+                data: datum[0]?.data.reverse() || [],
+            },
+        ];
 
-    $: splitData = {
-        question: question.question,
-        data: datum[0]?.data.slice(0, currentIndex),
-    };
+        q = null;
+        setTimeout(() => {
+            q = history[0];
+        }, 0);
+    }
+
+    onMount(async () => {
+        await loadData();
+
+        setInterval(async () => {
+            await loadData();
+        }, 2000);
+    });
 </script>
 
 <article>
-    {#if question && splitData && datum}
+    {#if question && q}
         <article class="container">
-            <HistoryPoster q={splitData} i={currentIndex} {questions} />
+            <HistoryPoster {q} i={currentIndex} {questions} />
         </article>
+        <div class="print">Use the laptop to print ←</div>
     {:else}
         <p>Loading...</p>
     {/if}
@@ -97,6 +85,7 @@
     article {
         background-color: white;
         background-color: rgb(254, 255, 231);
+        min-height: 100vh;
     }
 
     .container {
@@ -104,6 +93,15 @@
         flex-wrap: nowrap;
         overflow: auto;
         gap: 10px;
+    }
+
+    .print {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, 50%);
+        font-size: 40px;
+        color: blue;
     }
 
     p {

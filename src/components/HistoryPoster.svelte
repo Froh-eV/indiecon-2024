@@ -8,6 +8,13 @@
     export let staticPoster;
     export let back;
 
+    $: {
+        if (q) {
+            try {
+                generateCombinedArray();
+            } catch (error) {}
+        }
+    }
     let noiseCharArray = [];
 
     try {
@@ -139,7 +146,7 @@
         combinedArray = [
             ...q.data.map((d, idx) => ({
                 type: "text",
-                content: `${d.answer.trim()}`,
+                content: `${d.answer.trim()} ▪ `,
                 id: `text-${idx}-${d.answer.trim()}`,
             })),
             ...Array(loremChar + fixedCharCount)

@@ -431,7 +431,7 @@
     }
 
     .empty {
-        color: rgb(222, 222, 222);
+        color: rgb(239, 239, 239);
     }
 
     .word {
